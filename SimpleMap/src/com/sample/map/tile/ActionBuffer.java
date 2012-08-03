@@ -10,7 +10,7 @@ import java.util.Map;
 import android.util.Log;
 
 abstract class ActionBuffer<K, V>{
-	private static final int ACTIVE_ACTIONS_MAX = 32;
+	private static final int ACTIVE_ACTIONS_MAX = 16;
 	
 	private final Map<K, V> mActive;	
 	private final LinkedList<Entry<K, V>> mPending;
@@ -98,7 +98,7 @@ abstract class ActionBuffer<K, V>{
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			Entry other = (Entry) obj;
+			Entry<?, ?> other = (Entry<?, ?>) obj;
 			if (key == null) {
 				if (other.key != null)
 					return false;

@@ -74,7 +74,8 @@ public class DefaultTileProvider extends BaseTileProvider {
 		protected void onPostExecuteService(Bitmap r) {
 			super.onPostExecuteService(r);
 			mPendingDownloads.remove(mTile);
-			notifyDataSetChanged();
+//			notifyDataSetChanged();
+			notifyTileAvailable(mTile.row, mTile.col);
 		}
 	}
 }

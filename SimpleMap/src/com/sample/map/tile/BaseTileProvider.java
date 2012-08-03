@@ -21,6 +21,7 @@ public abstract class BaseTileProvider implements TileProvider {
 	private final WeakReference<Context> mContextRef;
 	
 	private final DataSetObservable mDatasetObservable;
+	private OnTileAvailableListener mTileAvailableListener;
 	
 	public BaseTileProvider(Context mContextRef) {
 		super();
@@ -65,12 +66,34 @@ public abstract class BaseTileProvider implements TileProvider {
 	public Bitmap requestTile(int row, int column) {
 		return mPlaceHolder;
 	}
+	
+	public Bitmap getTilePlaceHolder(){
+		return mPlaceHolder;
+	}
 
 	public Context getContext(){
 		return mContextRef.get();
 	}
 	
 	public void release(){
-		
+		removeOnTileAvailableListener();
+	}
+	
+	public void setOnTileAvailableListener(OnTileAvailableListener listener){
+		this.mTileAvailableListener = listener;
+	}
+	
+	public void removeOnTileAvailableListener(){
+		this.mTileAvailableListener = null;
+	}
+	
+	protected void notifyTileAvailable(int row, int col){
+		if (mTileAvailableListener != null){
+			mTileAvailableListener.onTileAvailable(row, col);
+		}
+	}
+	
+	public interface OnTileAvailableListener{
+		void onTileAvailable(int row, int col);
 	}
 }
