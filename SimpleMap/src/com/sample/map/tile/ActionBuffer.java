@@ -7,10 +7,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import android.util.Log;
-
 abstract class ActionBuffer<K, V>{
-	private static final int ACTIVE_ACTIONS_MAX = 16;
+	private static final int ACTIVE_ACTIONS_MAX = 64;
+	private static final int PENDING_ACTIONS_MAX = 64;
 	
 	private final Map<K, V> mActive;	
 	private final LinkedList<Entry<K, V>> mPending;
@@ -23,12 +22,16 @@ abstract class ActionBuffer<K, V>{
 	
 	protected abstract void performAction(K key, V value);
 	
+	protected void onActionRejected(K key, V value){
+		
+	}
+	
 	public void enque(K key, V value){
-		Log.d("ActionBuffer", "active size = " + mActive.size() + ", pending size " + mPending.size());
+//		Log.d("ActionBuffer", "key " + key + "active size = " + mActive.size() + ", pending size " + mPending.size());
 		if (!mActive.containsKey(key)){
 			Entry<K, V> e = new Entry<K, V>(key, value);
 			if (mActive.size() >= ACTIVE_ACTIONS_MAX){
-				reorderToFront(e);
+				reorderToFrontErasingLast(e);
 			} else {
 				moveToActive(e);
 			}
@@ -66,9 +69,17 @@ abstract class ActionBuffer<K, V>{
 		}
 		return false;
 	}
-
-	private void reorderToFront(Entry<K, V> e) {
+	
+	private void reorderToFront(Entry<K,V> e){
 		mPending.remove(e);
+		mPending.addFirst(e);
+	}
+
+	private void reorderToFrontErasingLast(Entry<K, V> e) {
+		if (!mPending.remove(e) && mPending.size() >= PENDING_ACTIONS_MAX){
+			Entry<K, V> entry = mPending.removeLast();
+			onActionRejected(entry.key, entry.value);
+		}
 		mPending.addFirst(e);
 	}
 	

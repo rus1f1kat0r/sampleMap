@@ -13,14 +13,13 @@ public class TileLoadableWrapper implements Downloadable<Tile, Bitmap> {
 		super();
 		this.mWrapped = mWrapped;
 	}
-	/* (non-Javadoc)
-	 * @see com.sample.map.tile.Downloadable#download(java.lang.Object)
-	 */
-	@Override
-	public Bitmap download(Tile key) throws InterruptedException {
-		return mWrapped.download(key);
-	}
 	
+	@Override
+	public Bitmap download(Tile key,
+			FastDownloadedCallback<Tile, Bitmap> callback)
+					throws InterruptedException {
+		return mWrapped.download(key, callback);
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

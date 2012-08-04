@@ -10,6 +10,7 @@ import java.io.InputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
@@ -19,14 +20,9 @@ import android.net.Uri;
 import android.util.Log;
 
 final class TileDownloadable implements Downloadable<Tile, Bitmap>{
-	
-	@Override
-	public Bitmap download(Tile key) throws InterruptedException {
-		return downloadBitmap(key);
-	}
 
-    public Bitmap downloadBitmap(Tile tile){
-        final DefaultHttpClient client = new DefaultHttpClient();
+	public Bitmap downloadBitmap(Tile tile){
+		final HttpClient mHttpClient = new DefaultHttpClient();
         final HttpGet getRequest = new HttpGet(new Uri.Builder()
         	.scheme("http")
         	.authority("vec.maps.yandex.net")
@@ -39,7 +35,7 @@ final class TileDownloadable implements Downloadable<Tile, Bitmap>{
         	.build().toString());
 
         try {
-            HttpResponse response = client.execute(getRequest);
+            HttpResponse response = mHttpClient.execute(getRequest);
             final int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
                 Log.w("ImageDownloader", "Error " + statusCode +
@@ -52,7 +48,7 @@ final class TileDownloadable implements Downloadable<Tile, Bitmap>{
                 try {
                     inputStream = new FlushedInputStream(entity.getContent());
                     final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    Log.d("ImageDownloader", bitmap + "");
+//                    Log.d("ImageDownloader", bitmap + "");
                     return bitmap;
                 } finally {
                     if (inputStream != null) {
@@ -70,10 +66,6 @@ final class TileDownloadable implements Downloadable<Tile, Bitmap>{
         } catch (Exception e) {
             getRequest.abort();
             Log.w(TileDownloader.LOG_TAG, "Error while retrieving bitmap from " + getRequest.getRequestLine().getUri(), e);
-        } finally {
-            if (client != null) {
-            	//FIXME client.close()?
-            }
         }
         return null;
     }
@@ -100,4 +92,11 @@ final class TileDownloadable implements Downloadable<Tile, Bitmap>{
             return totalBytesSkipped;
         }
     }
+	
+	@Override
+	public Bitmap download(Tile key,
+			FastDownloadedCallback<Tile, Bitmap> callback)
+			throws InterruptedException {
+		return downloadBitmap(key);
+	}
 }

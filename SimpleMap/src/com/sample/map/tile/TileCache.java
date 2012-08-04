@@ -11,7 +11,7 @@ class TileCache extends DownloaderCache<Tile, Bitmap> {
 	private static TileCache sInstance;
 	
 	private TileCache(Context context) {
-		super(new LocalTileLoadable(context, new TileDownloadable()));
+		super(new LocalTileLoadable2(context, new TileDownloadable()));
 	}
 	
 	public static TileCache getInstance(Context context){

@@ -18,9 +18,9 @@ class DownloaderCache<K, V> implements Downloadable<K, V>{
 	}
 
 	@Override
-	public V download(K key) throws InterruptedException{
+	public V download(K key, FastDownloadedCallback<K, V> callback) throws InterruptedException{
 		while(true){
-			Future<V> f = createFutureTask(key);
+			Future<V> f = createFutureTask(key, callback);
 			try{
 				return f.get();
 			}
@@ -39,14 +39,14 @@ class DownloaderCache<K, V> implements Downloadable<K, V>{
 		}
 	}
 
-	private Future<V> createFutureTask(final K key) {
+	private Future<V> createFutureTask(final K key, final FastDownloadedCallback<K, V> callback) {
 		Future<V> f = mCache.get(key);
 		if (f == null){
 			Callable<V> eval = new Callable<V>() {
 
 				@Override
 				public V call() throws Exception {
-					return mDownloadInterface.download(key);
+					return mDownloadInterface.download(key, callback);
 				}
 			};
 			FutureTask<V> ft = new FutureTask<V>(eval);
@@ -67,6 +67,5 @@ class DownloaderCache<K, V> implements Downloadable<K, V>{
 	void purgeCache(){
 		mCache.reset();
 	}
-	
 	
 }

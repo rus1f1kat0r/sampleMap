@@ -55,9 +55,9 @@ public class TileDownloader extends Service {
 		//mCache.purgeCache();
 	}
 	
-	public Bitmap getTile(Tile t){
+	public Bitmap getTile(Tile t, FastDownloadedCallback<Tile, Bitmap> callback){
 		try {
-			return mCache.download(t);
+			return mCache.download(t, callback);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 			return null;

@@ -12,10 +12,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-/**
- * @author Kirill
- *
- */
 public class LocalTileLoadable extends TileLoadableWrapper{
 	private static final String TILE_PREFIX = "tile_";
 	private static final String TILE_SUFFIX = ".png";
@@ -28,19 +24,22 @@ public class LocalTileLoadable extends TileLoadableWrapper{
 	}
 	
 	@Override
-	public Bitmap download(Tile key) throws InterruptedException {
+	public Bitmap download(Tile key, FastDownloadedCallback<Tile, Bitmap> callback) throws InterruptedException {
 		Bitmap result = null;
 		if (isAvailableLocal(key)){
-			result = loadLocalTile(key);
+			result = loadLocalTile(key, callback);
 		}
 		if (result == null){
-			result = super.download(key);
-			saveLocally(key, result);
+			result = super.download(key, callback);
+			if (result != null){
+				callback.onDownloaded(key, result);
+				saveLocally(key, result);
+			}
 		}
 		return result;
 	}
 	
-	private void saveLocally(Tile key, Bitmap result) {
+	public void saveLocally(Tile key, Bitmap result) {
 		Context context = mContextRef.get();
 		if (context != null && result != null){
 //			removeOldFilesIfNeeded(context);
@@ -52,20 +51,22 @@ public class LocalTileLoadable extends TileLoadableWrapper{
 //		context.startService(new Intent(context, LocalCachePurger.class));
 //	}
 
-	private Bitmap loadLocalTile(Tile key) {
+	public Bitmap loadLocalTile(Tile key, FastDownloadedCallback<Tile, Bitmap> callback) {
 		Context context = mContextRef.get();
 		if (context != null){
 			File f = getLocalTile(context, key);
+			Bitmap b = BitmapFactory.decodeFile(f.getAbsolutePath());
+			callback.onDownloaded(key, b);
 			synchronized (LocalCachePurger.class) {
 				f.setLastModified(System.currentTimeMillis());
 			}
-			return BitmapFactory.decodeFile(f.getAbsolutePath());
+			return b;
 		} else {
 			return null;
 		}
 	}
 
-	private boolean isAvailableLocal(Tile key){
+	public boolean isAvailableLocal(Tile key){
 		Context context = mContextRef.get();
 		if (context != null) {
 			File tile = getLocalTile(context, key);
@@ -102,5 +103,9 @@ public class LocalTileLoadable extends TileLoadableWrapper{
 				ex.printStackTrace();
 			} 
 		}
+	}
+	
+	public Context getContext(){
+		return mContextRef.get();
 	}
 }

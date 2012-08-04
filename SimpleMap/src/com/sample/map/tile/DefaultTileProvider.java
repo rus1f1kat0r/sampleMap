@@ -8,7 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
-public class DefaultTileProvider extends BaseTileProvider {
+public class DefaultTileProvider extends BaseTileProvider implements FastDownloadedCallback<Tile, Bitmap>{
 
 	private final ActionBuffer<Tile, TileRequestTask> mPendingDownloads;
 	private final ServiceDelegate<TileDownloader> mServiceDelegate;
@@ -19,6 +19,12 @@ public class DefaultTileProvider extends BaseTileProvider {
 			@Override
 			protected void performAction(Tile key, TileRequestTask value) {
 				value.execute();
+			}
+			
+			@Override
+			protected void onActionRejected(Tile key, TileRequestTask value) {
+				super.onActionRejected(key, value);
+				value.cancel(false);
 			}
 		};
 		this.mServiceDelegate = new ServiceDelegate<TileDownloader>(mContextRef);
@@ -31,7 +37,8 @@ public class DefaultTileProvider extends BaseTileProvider {
 		if (!mPendingDownloads.contains(tile)){
 			TileDownloader service = mServiceDelegate.getService();
 			if (service != null && service.isTileAvailable(tile)){
-				Bitmap t = service.getTile(tile);
+				//use self as a callback when call from ui thread 
+				Bitmap t = service.getTile(tile, this);
 				if (t != null){
 					return t;
 				}
@@ -49,9 +56,22 @@ public class DefaultTileProvider extends BaseTileProvider {
 		mServiceDelegate.doUnbindService();
 	}
 	
-	private class TileRequestTask extends ServiceTask<Void, Void, Bitmap, TileDownloader>{
+	@Override
+	public void onDownloaded(Tile k, Bitmap v) {
+		notifyTileAvailable(k.row, k.col, v);
+	}
+	
+	private class TileRequestTask extends ServiceTask<Void, Bitmap, Bitmap, TileDownloader>{
 
 		private final Tile mTile;
+		private final FastDownloadedCallback<Tile, Bitmap> callback = new FastDownloadedCallback<Tile, Bitmap>() {
+			
+			@Override
+			public void onDownloaded(Tile k, Bitmap v) {
+				//return to UI thread
+				publishProgress(v);
+			}
+		};
 		
 		public TileRequestTask(Tile tile) {			
 			super(mServiceDelegate, BoundMode.KEEP_ALIVE, false);
@@ -60,8 +80,8 @@ public class DefaultTileProvider extends BaseTileProvider {
 		
 		@Override
 		protected Bitmap doInBackgroundService(TileDownloader service,
-				Void... params) throws Exception {
-			return service.getTile(mTile);
+				Void... params) throws Exception {			
+			return service.getTile(mTile, callback);
 		}
 		
 		@Override
@@ -71,11 +91,17 @@ public class DefaultTileProvider extends BaseTileProvider {
 		}
 		
 		@Override
+		protected void onProgressUpdate(Bitmap... values) {
+			super.onProgressUpdate(values);
+			onDownloaded(mTile, values[0]);
+		}
+		
+		@Override
 		protected void onPostExecuteService(Bitmap r) {
 			super.onPostExecuteService(r);
 			mPendingDownloads.remove(mTile);
 //			notifyDataSetChanged();
-			notifyTileAvailable(mTile.row, mTile.col);
+//			notifyTileAvailable(mTile.row, mTile.col, r);
 		}
 	}
 }

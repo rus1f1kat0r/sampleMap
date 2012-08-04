@@ -3,5 +3,9 @@
 
     <string name="hello">Hello World, SimpleMapActivity!</string>
     <string name="app_name">SimpleMap</string>
+    <string name="tiles_provider_read_permission_label">Allows client to read tiles</string>
+    <string name="tiles_provider_read_permission_desc">Read meta information about map tiles and download tile images that tiles content provider stores</string>
 
+    <string name="tiles_provider_write_permission_label">Allows client to write tiles info</string>
+    <string name="tiles_provider_write_permission_desc">Save or change meta information about map tiles and tile images</string>
 </resources>

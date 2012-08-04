@@ -87,13 +87,13 @@ public abstract class BaseTileProvider implements TileProvider {
 		this.mTileAvailableListener = null;
 	}
 	
-	protected void notifyTileAvailable(int row, int col){
+	protected void notifyTileAvailable(int row, int col, Bitmap bmp){
 		if (mTileAvailableListener != null){
-			mTileAvailableListener.onTileAvailable(row, col);
+			mTileAvailableListener.onTileAvailable(row, col, bmp);
 		}
 	}
 	
 	public interface OnTileAvailableListener{
-		void onTileAvailable(int row, int col);
+		void onTileAvailable(int row, int col, Bitmap bmp);
 	}
 }

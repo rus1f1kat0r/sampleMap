@@ -14,7 +14,6 @@ import android.graphics.Rect;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -94,8 +93,8 @@ public class MapView extends View {
 	}
 
 	private void drawTiles(Canvas canvas){
-        final Rect rr = canvas.getClipBounds();
-        Log.d("DEBUG", "rectangle of invalidation:" + rr);
+//        final Rect rr = canvas.getClipBounds();
+//        Log.d("DEBUG", "rectangle of invalidation:" + rr);
         //TODO draw don't try to draw outside the dirty rectangle
 		int rowStart = mVisibleArea.firstVisibleRow;
 		int yOffset = mOffsetY + (rowStart * mTileSize);
@@ -176,10 +175,12 @@ public class MapView extends View {
 		return Math.min(mCols, d.intValue()) - startCol;
 	}
 		
+	@SuppressWarnings("unused")
 	private boolean isTileInsideX(int column, int xOffset){
 		return xOffset <= getWidth() && column < mCols;
 	}
 	
+	@SuppressWarnings("unused")
 	private boolean isTileInsideY(int row, int yOffset){
 		return yOffset <= getHeight() && row < mRows;
 	}
@@ -296,7 +297,7 @@ public class MapView extends View {
 			super.onChanged();
 			mChanged = true;
 			invalidate();
-			Log.d(VIEW_LOG_TAG, "onChanged()");
+//			Log.d(VIEW_LOG_TAG, "onChanged()");
 		}
 
 		@Override
@@ -305,12 +306,12 @@ public class MapView extends View {
 		}
 
 		@Override
-		public void onTileAvailable(int row, int col) {
+		public void onTileAvailable(int row, int col, Bitmap bmp) {			
 			if (mVisibleArea.isVisibleTile(row, col)){
-				mVisibleArea.setTile(row, col, mTileProvider.requestTile(row, col), true);
+				mVisibleArea.setTile(row, col, bmp, true);
 
 	            final Rect r = tileOnScreen(row, col);
-	            Log.d("DEBUG", "rectangle of tile:" + r);
+//	            Log.d("DEBUG", "rectangle of tile:" + r);
 				invalidate(r);
 			}
 		}
